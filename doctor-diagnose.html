@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Diagnosis</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2c3e50;
+            --background-color: #f0f8ff;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--white);
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .patient-details {
+            max-width: 800px;
+            margin: 2rem auto;
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .patient-details h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .patient-details .detail-row {
+            display: flex;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .patient-details .detail-label {
+            flex: 1;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .patient-details .detail-value {
+            flex: 2;
+        }
+
+        #loading-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagnose-section {
+            margin-top: 1.5rem;
+            background-color: #f9f9f9;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        .diagnose-section textarea {
+            width: 100%;
+            min-height: 150px;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 1rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #14485e;
+        }
+
+        .diagnose-ai-btn {
+            display: block;
+            width: 22%;
+            padding: 10px;
+            margin-top: 1rem;
+            background-color: #4CAF50;
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+
+        .diagnose-ai-btn:hover {
+            background-color: #45a049;
+        }
+
+        #ai-response {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .symptoms-section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .symptoms-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .symptoms-section p {
+            color: var(--secondary-color);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Medigo - Patient Diagnosis</div>
+        <div class="navbar-role" id="userRole"></div>
+    </nav>
+
+    <div id="loading-dialog">
+        <div class="loading-content">
+            <h2>Loading...</h2>
+            <p>Fetching patient details</p>
+        </div>
+    </div>
+
+    <div id="patient-details" class="patient-details" style="display: none;">
+        <h2 id="patient-name">Patient Details</h2>
+
+        <div class="detail-row">
+            <div class="detail-label">Token ID</div>
+            <div class="detail-value" id="token-id"></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Full Name</div>
+            <div class="detail-value" id="full-name"></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Age</div>
+            <div class="detail-value" id="patient-age"></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Gender</div>
+            <div class="detail-value" id="patient-gender"></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Contact Number</div>
+            <div class="detail-value" id="patient-contact"></div>
+        </div>
+
+        <div class="symptoms-section">
+            <h3>Symptoms</h3>
+            <p id="symptoms-text"></p>
+        </div>
+
+        <div class="diagnose-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Diagnosis</h3>
+                <button class="diagnose-ai-btn" id="diagnose-ai-btn">Diagnose and Treat</button>
+            </div>
+            <textarea id="diagnosis-input" placeholder="Enter patient diagnosis..."></textarea>
+            <button class="submit-btn" id="submit-diagnosis">Submit Diagnosis</button>
+            <div id="ai-response"></div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://app-w0ew.onrender.com";
+        // Function to remove loading dialog
+        function removeLoadingDialog() {
+            const loadingDialog = document.getElementById('loading-dialog');
+            if (loadingDialog) {
+                loadingDialog.remove();
+            }
+        }
+
+        // Function to fetch patient details
+        async function fetchPatientDetails() {
+            try {
+                // Check if user is authenticated
+                const userAuth = JSON.parse(sessionStorage.getItem('userAuth'));
+                if (!userAuth || !userAuth.token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Get token ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const tokenId = urlParams.get('token');
+
+                // Set user role
+                document.getElementById('userRole').textContent = `Role: ${userAuth.role}`;
+
+                // Fetch patient details
+                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userAuth.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Check for unauthorized access
+                if (response.status === 401) {
+                    throw new Error('Unauthorized: Token invalid');
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch patient details');
+                }
+
+                const patientData = await response.json();
+                const patient = patientData.data;
+                // Populate patient details
+                document.getElementById('patient-name').textContent = patient[0].fullname;
+                document.getElementById('token-id').textContent = patient[0].token_id;
+                document.getElementById('full-name').textContent = patient[0].fullname;
+                document.getElementById('patient-age').textContent = patient[0].age;
+                document.getElementById('patient-gender').textContent = patient[0].gender;
+                document.getElementById('patient-contact').textContent = patient[0].contact;
+
+                // Set symptoms text
+                document.getElementById('symptoms-text').textContent = patient[0].symptoms;
+
+                // Add event listener for Diagnose and Treat button
+                const diagnoseAiBtn = document.getElementById('diagnose-ai-btn');
+                const diagnosisInput = document.getElementById('diagnosis-input');
+                diagnoseAiBtn.addEventListener('click', async () => {
+                    try {
+                        // Disable button during API call
+                        diagnoseAiBtn.disabled = true;
+                        diagnoseAiBtn.textContent = 'Processing...';
+
+                        // Get symptoms
+                        const symptoms = patient[0].symptoms;
+
+                        // Call Gemini Doctor API
+                        const response = await fetch(`https://gemini-doctor.vercel.app/diagnose`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                symptom: symptoms
+                            })
+                        });
+
+                        // Check if response is ok
+                        if (!response.ok) {
+                            throw new Error('Failed to get AI diagnosis');
+                        }
+
+                        // Parse the response
+                        const diagnosisData = await response.json();
+
+                        // Format diagnosis and treatment
+                        const formattedDiagnosis = `Diagnosis:
+${diagnosisData.Diagnosis.map((d, index) => `${index + 1}. ${d}`).join('\n')}
+
+Treatment:
+${diagnosisData.Treatment.map((t, index) => `${index + 1}. ${t}`).join('\n')}`;
+
+                        // Fill diagnosis input
+                        diagnosisInput.value = formattedDiagnosis;
+
+                        // Reset button
+                        diagnoseAiBtn.disabled = false;
+                        diagnoseAiBtn.textContent = 'Diagnose and Treat';
+                    } catch (error) {
+                        console.error('Error with AI diagnosis:', error);
+
+                        // Reset button
+                        diagnoseAiBtn.disabled = false;
+                        diagnoseAiBtn.textContent = 'Diagnose and Treat';
+
+                        // Optional: show error to user
+                        diagnosisInput.value = `Error obtaining AI diagnosis: ${error.message}`;
+                    }
+                });
+
+                // Show patient details and remove loading dialog
+                document.getElementById('patient-details').style.display = 'block';
+                removeLoadingDialog();
+
+                // Add event listener for diagnosis submission
+                document.getElementById('submit-diagnosis').addEventListener('click', async () => {
+                    try {
+                        // Get user authentication
+                        const userAuth = JSON.parse(sessionStorage.getItem('userAuth'));
+                        if (!userAuth || !userAuth.token) {
+                            throw new Error('No authentication token found');
+                        }
+
+                        // Get diagnosis text and token ID
+                        const diagnosisInput = document.getElementById('diagnosis-input');
+                        const diagnosisText = diagnosisInput.value.trim();
+                        const tokenId = patient[0].token_id;
+
+                        // Validate diagnosis text
+                        if (!diagnosisText) {
+                            alert('Please enter a diagnosis before submitting.');
+                            return;
+                        }
+
+                        // Disable submit button during request
+                        const submitBtn = document.getElementById('submit-diagnosis');
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Submitting...';
+
+                        // Send PATCH request
+                        const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Authorization': `Bearer ${userAuth.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                treatment: diagnosisText
+                            })
+                        });
+
+                        // Check response
+                        if (response.status === 401) {
+                            // Token is invalid, redirect to login
+                            sessionStorage.removeItem('userAuth');
+                            window.location.href = 'login.html';
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            throw new Error('Failed to submit diagnosis');
+                        }
+
+                        // Show success message
+                        alert('Diagnosis submitted successfully!');
+
+                        // Reset submit button
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Submit Diagnosis';
+
+                    } catch (error) {
+                        console.error('Error submitting diagnosis:', error);
+
+                        // Show error message
+                        alert(`Failed to submit diagnosis: ${error.message}`);
+
+                        // Reset submit button
+                        const submitBtn = document.getElementById('submit-diagnosis');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Submit Diagnosis';
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error fetching patient details:', error);
+                removeLoadingDialog();
+
+                // Redirect to login page on token invalid
+                sessionStorage.removeItem('userAuth');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', fetchPatientDetails);
+    </script>
+</body>
+
+</html>

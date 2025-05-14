@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2c3e50;
+            --background-color: #f0f8ff;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--white);
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .navbar-role {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        #loading-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            margin-top: 5rem;
+        }
+
+        .patient-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .patient-card:hover {
+            transform: scale(1.05);
+        }
+
+        .patient-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .patient-card p {
+            color: var(--secondary-color);
+            margin: 5px 0;
+        }
+
+        .patient-card .check-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .patient-card .check-btn:hover {
+            background-color: #14485e;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Welcome to Medigo</div>
+        <div class="navbar-role" id="userRole"></div>
+    </nav>
+
+    <div id="loading-dialog">
+        <div class="loading-content">
+            <h2>Loading...</h2>
+            <p>Fetching patient information</p>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://app-w0ew.onrender.com";
+        // Function to remove loading dialog
+        function removeLoadingDialog() {
+            const loadingDialog = document.getElementById('loading-dialog');
+            if (loadingDialog) {
+                loadingDialog.remove();
+            }
+        }
+
+        // Fetch patients for the doctor
+        async function fetchDoctorPatients() {
+            try {
+                // Retrieve user authentication info from sessionStorage
+                const userAuth = JSON.parse(sessionStorage.getItem('userAuth'));
+                if (!userAuth || !userAuth.token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Decode the token to get user ID
+                const tokenParts = userAuth.token.split('.');
+                const decodedPayload = JSON.parse(atob(tokenParts[1]
+                    .replace(/-/g, '+')
+                    .replace(/_/g, '/')
+                ));
+
+                document.getElementById('userRole').textContent = `Role: ${userAuth.role}`;
+
+                // Fetch patients for the doctor
+                const response = await fetch(`${BACKEND_URL}/api/v1/patientbydoc/${decodedPayload.userid}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userAuth.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Check for unauthorized access
+                if (response.status === 401) {
+                    throw new Error('Unauthorized: Token invalid');
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch patients');
+                }
+
+                const patients = await response.json();
+
+                // Remove loading dialog
+                removeLoadingDialog();
+
+                // Create patient grid
+                const patientGrid = document.createElement('div');
+                patientGrid.className = 'patient-grid';
+
+                // Create patient cards
+                patients.data.forEach(patient => {
+                    const patientCard = document.createElement('div');
+                    patientCard.className = 'patient-card';
+
+                    patientCard.innerHTML = `
+                        <h3>${patient.fullname}</h3>
+                        <p>Token ID: ${patient.token_id}</p>
+                        <button class='check-btn' data-token-id='${patient.token_id}'>Check</button>
+                    `;
+
+                    // Add event listener for Check button
+                    const checkBtn = patientCard.querySelector('.check-btn');
+                    checkBtn.addEventListener('click', () => {
+                        // Redirect to doctor-diagnose page with token ID
+                        window.location.href = `doctor-diagnose.html?token=${patient.token_id}`;
+                    });
+
+                    patientGrid.appendChild(patientCard);
+                });
+
+                // Add patient grid to body
+                document.body.appendChild(patientGrid);
+            } catch (error) {
+                console.error('Error fetching doctor patients:', error);
+
+                // Remove loading dialog
+                removeLoadingDialog();
+
+                // Redirect to login page on token invalid
+                sessionStorage.removeItem('userAuth');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', fetchDoctorPatients);
+    </script>
+</body>
+
+</html>

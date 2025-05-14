@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receptionist Dashboard - Medigo</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2c3e50;
+            --background-color: #f0f8ff;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .navbar-role {
+            font-size: 1rem;
+        }
+
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .patient-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .patient-card:hover {
+            transform: scale(1.05);
+        }
+
+        .patient-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .patient-card p {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .patient-card .btn-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-update {
+            background-color: #4CAF50;
+            color: var(--white);
+        }
+
+        .btn-update:hover {
+            background-color: #45a049;
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+            color: var(--white);
+        }
+
+        .btn-delete:hover {
+            background-color: #d32f2f;
+        }
+
+        .add-patient-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-patient-btn:hover {
+            background-color: #45a049;
+        }
+
+        .loading-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-dialog-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Medigo - Receptionist Dashboard</div>
+        <div class="navbar-role" id="userRole"></div>
+    </nav>
+
+    <div class="patient-grid" id="patientGrid"></div>
+
+    <button class="add-patient-btn" id="addPatientBtn">Add Patient</button>
+
+    <div class="loading-dialog" id="loadingDialog">
+        <div class="loading-dialog-content">
+            <h2>Loading Patients...</h2>
+            <p>Please wait while we fetch patient information.</p>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://app-w0ew.onrender.com";
+        // Function to remove loading dialog
+        function removeLoadingDialog() {
+            const loadingDialog = document.getElementById('loadingDialog');
+            loadingDialog.style.display = 'none';
+        }
+
+        // Fetch patients for the receptionist
+        async function fetchReceptionistPatients() {
+            try {
+                // Get user authentication
+                const userAuth = JSON.parse(sessionStorage.getItem('userAuth'));
+                if (!userAuth || !userAuth.token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Set user role
+                document.getElementById('userRole').textContent = `Role: ${userAuth.role}`;
+
+                // Fetch all patients
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userAuth.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Check for unauthorized access
+                if (response.status === 401) {
+                    throw new Error('Unauthorized: Token invalid');
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch patients');
+                }
+
+                const patients = await response.json();
+
+                // Remove loading dialog
+                removeLoadingDialog();
+
+                // Create patient grid
+                const patientGrid = document.getElementById('patientGrid');
+
+                // Create patient cards
+                patients.data.forEach(patient => {
+                    const patientCard = document.createElement('div');
+                    patientCard.className = 'patient-card';
+
+                    patientCard.innerHTML = `
+                        <h3>${patient.fullname}</h3>
+                        <p>Token ID: ${patient.token_id}</p>
+                        <div class="btn-group">
+                            <button class='btn btn-update' data-token-id='${patient.token_id}'>Update</button>
+                            <button class='btn btn-delete' data-token-id='${patient.token_id}'>Delete</button>
+                        </div>
+                    `;
+
+                    // Add event listeners for Update and Delete buttons
+                    const updateBtn = patientCard.querySelector('.btn-update');
+                    const deleteBtn = patientCard.querySelector('.btn-delete');
+
+                    updateBtn.addEventListener('click', () => {
+                        // Redirect to update patient page with token ID
+                        window.location.href = `update-patient.html?token_id=${patient.token_id}`;
+                    });
+
+                    deleteBtn.addEventListener('click', async () => {
+                        // Confirm deletion
+                        const confirmDelete = confirm(`Are you sure you want to delete patient ${patient.fullname} with Token ID: ${patient.token_id}?`);
+
+                        if (confirmDelete) {
+                            try {
+                                // Get user authentication
+                                const userAuth = JSON.parse(sessionStorage.getItem('userAuth'));
+                                if (!userAuth || !userAuth.token) {
+                                    throw new Error('No authentication token found');
+                                }
+
+                                // Send DELETE request
+                                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${patient.token_id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${userAuth.token}`,
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+
+                                // Check for unauthorized access
+                                if (response.status === 401) {
+                                    throw new Error('Unauthorized: Token invalid');
+                                }
+
+                                // Check if deletion was successful
+                                if (!response.ok) {
+                                    throw new Error('Failed to delete patient');
+                                }
+
+                                // Refresh the page on successful deletion
+                                window.location.reload();
+
+                            } catch (error) {
+                                console.error('Error deleting patient:', error);
+
+                                // Show error message
+                                if (error.message === 'Unauthorized: Token invalid') {
+                                    // Redirect to login if token is invalid
+                                    sessionStorage.removeItem('userAuth');
+                                    window.location.href = 'login.html';
+                                } else {
+                                    alert(`Failed to delete patient: ${error.message}`);
+                                }
+                            }
+                        }
+                    });
+
+                    patientGrid.appendChild(patientCard);
+                });
+            } catch (error) {
+                console.error('Error fetching patients:', error);
+
+                // Redirect to login page on token invalid
+                sessionStorage.removeItem('userAuth');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchReceptionistPatients();
+
+            // Add event listener for Add Patient button
+            const addPatientBtn = document.getElementById('addPatientBtn');
+            addPatientBtn.addEventListener('click', () => {
+                window.location.href = 'create-patient.html';
+            });
+        });
+    </script>
+</body>
+
+</html>

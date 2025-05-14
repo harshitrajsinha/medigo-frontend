@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Report - Medigo</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2c3e50;
+            --background-color: #f0f8ff;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            display: block;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .patient-report {
+
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .report-header h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+
+        .token-info {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .patient-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .patient-details div {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .patient-details strong {
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .symptoms-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .symptoms-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .doctor-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .diagnosis-treatment-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .diagnosis-treatment-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .diagnosis-treatment-section p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .doctor-info strong {
+            color: var(--primary-color);
+        }
+
+        .back-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto 0;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #14485e;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="patient-report" id="patientReportContainer">
+        <div class="report-header">
+            <h1>Patient Medical Report</h1>
+            <div class="token-info" id="tokenDisplay"></div>
+        </div>
+
+        <div class="patient-details" id="patientBasicInfo"></div>
+
+        <div class="symptoms-section" id="symptomsSection"></div>
+
+        <div class="diagnosis-treatment-section" id="diagnosisTreatmentSection"></div>
+
+        <div class="doctor-info" id="doctorInfo"></div>
+
+
+    </div>
+
+    <a href="index.html" class="back-btn">Back to Home</a>
+
+    <script>
+        const BACKEND_URL = "https://app-w0ew.onrender.com";
+        // Retrieve token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenId = urlParams.get('token');
+
+        async function fetchPatientReport() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`);
+
+                if (!response.ok) {
+                    throw new Error('Patient not found');
+                }
+
+                const responseData = await response.json();
+                const patient = responseData.data[0];  // Assuming the API returns data in this format
+
+                // Token Display
+                document.getElementById('tokenDisplay').textContent = `Token ID: ${patient.token_id}`;
+
+                // Basic Patient Info
+                document.getElementById('patientBasicInfo').innerHTML = `
+                    <div>
+                        <strong>Full Name</strong>
+                        ${patient.fullname}
+                    </div>
+                    <div>
+                        <strong>Gender</strong>
+                        ${patient.gender}
+                    </div>
+                    <div>
+                        <strong>Age</strong>
+                        ${patient.age} years
+                    </div>
+                    <div>
+                        <strong>Contact</strong>
+                        ${patient.contact}
+                    </div>
+                `;
+
+                // Symptoms Section
+                document.getElementById('symptomsSection').innerHTML = `
+                    <h3>Patient Symptoms</h3>
+                    ${patient.symptoms}
+                `;
+
+                // Diagnosis and Treatment Section
+                const diagnosisTreatmentSection = document.getElementById('diagnosisTreatmentSection');
+                if (patient.treatment && patient.treatment.trim() !== '') {
+                    diagnosisTreatmentSection.innerHTML = `
+                        <h3>Diagnosis and Treatment</h3>
+                        <p>${patient.treatment}</p>
+                    `;
+                } else {
+                    // Hide the section if no treatment is available
+                    diagnosisTreatmentSection.style.display = 'none';
+                }
+
+                // Doctor Info
+                document.getElementById('doctorInfo').innerHTML = `
+                    <div>
+                        <strong>Assigned Doctor: </strong>
+                        ${patient.assigned_to}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('patientReportContainer').innerHTML = `
+                    <div style="color: red; text-align: center;">
+                        <h2>Error</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Call fetch when page loads
+        fetchPatientReport();
+    </script>
+</body>
+
+</html>

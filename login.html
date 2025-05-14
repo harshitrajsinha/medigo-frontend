@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Medigo</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2c3e50;
+            --background-color: #f0f8ff;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .login-container {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .login-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #14485e;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Login</h1>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="doctor">Doctor</option>
+                    <option value="receptionist">Receptionist</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+
+        <a href="index.html" class="back-link">Back to Home</a>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://app-w0ew.onrender.com";
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            // Get form elements
+            const roleSelect = document.getElementById('role');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+
+            // Get values
+            const role = roleSelect.value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            // Get error message element (create if not exists)
+            let errorMessageEl = document.getElementById('errorMessage');
+            if (!errorMessageEl) {
+                errorMessageEl = document.createElement('div');
+                errorMessageEl.id = 'errorMessage';
+                errorMessageEl.style.color = 'red';
+                errorMessageEl.style.textAlign = 'center';
+                errorMessageEl.style.marginBottom = '15px';
+
+                // Find the first form-group to insert before
+                const firstFormGroup = document.querySelector('.form-group');
+                if (firstFormGroup) {
+                    firstFormGroup.parentNode.insertBefore(errorMessageEl, firstFormGroup);
+                } else {
+                    // Fallback if no form-group found
+                    document.getElementById('loginForm').insertBefore(errorMessageEl, document.getElementById('loginForm').firstChild);
+                }
+            }
+
+            // Clear previous error
+            errorMessageEl.textContent = '';
+
+            // Validate all fields
+            if (!role) {
+                errorMessageEl.textContent = 'Please select a role';
+                return;
+            }
+
+            if (!email) {
+                errorMessageEl.textContent = 'Please enter an email';
+                return;
+            }
+
+            if (!password) {
+                errorMessageEl.textContent = 'Please enter a password';
+                return;
+            }
+
+            try {
+                // Prepare login data
+                const loginData = {
+                    role: role,
+                    email: email,
+                    password: password
+                };
+
+                // Send POST request
+                const response = await fetch(`${BACKEND_URL}/api/v1/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                // Parse response
+                const responseData = await response.json();
+
+                // Check response status
+                if (response.ok) {
+                    // Successful login
+                    errorMessageEl.style.color = 'green';
+                    errorMessageEl.textContent = 'Login successful!';
+                    console.log(responseData);
+
+                    // Store token
+                    const token = responseData.data.token;
+
+                    // Decode JWT token
+                    try {
+                        // Split the token into its parts
+                        const tokenParts = token.split('.');
+
+                        // Base64Url decode the payload (second part)
+                        const decodedPayload = JSON.parse(atob(tokenParts[1]
+                            .replace(/-/g, '+')
+                            .replace(/_/g, '/')
+                        ));
+
+                        // Log decoded payload
+                        console.log('JWT Payload:', decodedPayload);
+
+                        // Store token and expiration in sessionStorage
+                        const tokenInfo = {
+                            token: token,
+                            role: role,
+                            expiresAt: decodedPayload.exp ? new Date(decodedPayload.exp * 1000).toISOString() : null
+                        };
+
+                        // Store as JSON string
+                        sessionStorage.setItem('userAuth', JSON.stringify(tokenInfo));
+
+                        // Optional: Log stored token info
+                        console.log('Stored Token Info:', tokenInfo);
+
+                        // Redirect based on role
+                        if (role === 'doctor') {
+                            window.location.href = 'doctor-dashboard.html';
+                        } else if (role === 'receptionist') {
+                            // Fetch patients before redirecting
+                            try {
+                                const patientsResponse = await fetch(`${BACKEND_URL}/api/v1/patients`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+
+                                // Check if patients fetch is successful
+                                if (!patientsResponse.ok) {
+                                    throw new Error('Failed to fetch patients');
+                                }
+
+                                // If successful, redirect to receptionist dashboard
+                                window.location.href = 'receptionist-dashboard.html';
+                            } catch (fetchError) {
+                                console.error('Error fetching patients:', fetchError);
+                                errorMessageEl.textContent = 'Failed to load patient data. Please try again.';
+                            }
+                        }
+                    } catch (decodeError) {
+                        console.error('Error decoding JWT token:', decodeError);
+                    }
+                } else {
+                    // Login failed
+                    errorMessageEl.textContent = responseData.message || 'Login failed';
+                }
+            } catch (error) {
+                // Network or other errors
+                errorMessageEl.textContent = 'An error occurred. Please try again.';
+                console.error('Login error:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>
