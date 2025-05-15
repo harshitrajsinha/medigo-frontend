@@ -25,6 +25,30 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
 });
 
+app.get("/receptionist-dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "receptionist-dashboard.html"));
+});
+
+app.get("/update-patient", (req, res) => {
+  res.sendFile(path.join(__dirname, "update-patient.html"));
+});
+
+app.get("/patient-report", (req, res) => {
+  res.sendFile(path.join(__dirname, "patient-report.html"));
+});
+
+app.get("/doctor-dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "doctor-dashboard.html"));
+});
+
+app.get("/doctor-diagnose", (req, res) => {
+  res.sendFile(path.join(__dirname, "doctor-diagnose.html"));
+});
+
+app.get("/create-patient", (req, res) => {
+  res.sendFile(path.join(__dirname, "create-patient.html"));
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
