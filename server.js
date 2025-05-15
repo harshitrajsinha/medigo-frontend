@@ -1,40 +1,8 @@
 const express = require("express");
 const path = require("path");
-const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Allow a specific origin
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://medigo-frontend.vercel.app",
-];
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g., mobile apps or Postman)
-    if (!origin) return callback(null, true);
-
-    // Check if the origin is in the allowed list
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: "GET,POST",
-  allowedHeaders: "Content-Type,Authorization",
-};
-app.use(cors(corsOptions));
-
-app.use((err, req, res, next) => {
-  if (err.message === "Not allowed by CORS") {
-    return res
-      .status(403)
-      .json({ error: "Access Denied, Not allowed by CORS" });
-  }
-  next(err);
-});
 
 // Set Content Security Policy headers
 app.use((req, res, next) => {
