@@ -215,7 +215,7 @@
                 const patientGrid = document.getElementById('patientGrid');
 
                 // Create patient cards
-                patients.data.forEach(patient => {
+                patients.data[0]["patients_data"].forEach(patient => {
                     const patientCard = document.createElement('div');
                     patientCard.className = 'patient-card';
 
