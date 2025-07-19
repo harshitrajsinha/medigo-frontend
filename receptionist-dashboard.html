@@ -148,13 +148,33 @@
             border-radius: 10px;
             text-align: center;
         }
+
+        .right-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <nav class="navbar">
         <div class="navbar-brand">Medigo - Receptionist Dashboard</div>
-        <div class="navbar-role" id="userRole"></div>
+        <div class="right-nav">
+            <div class="navbar-role" id="userRole"></div>
+            <button class="logout-btn" id="logoutBtn">
+                Logout
+            </button>
+        </div>
     </nav>
 
     <div class="patient-grid" id="patientGrid"></div>
@@ -296,6 +316,14 @@
                 window.location.href = 'login.html';
             }
         }
+
+        // Add logout button functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            // Remove user authentication from session storage
+            sessionStorage.removeItem('userAuth');
+            // Redirect to home page
+            window.location.href = 'index.html';
+        });
 
         // Call the function when the page loads
         document.addEventListener('DOMContentLoaded', () => {

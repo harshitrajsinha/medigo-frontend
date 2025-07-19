@@ -80,6 +80,13 @@
             transition: background-color 0.3s ease;
         }
 
+        .loading-message {
+            display: none;
+            text-align: center;
+            color: #1877ca;
+            margin-top: 15px;
+        }
+
         .submit-btn:hover {
             background-color: #14485e;
         }
@@ -105,6 +112,9 @@
         </div>
 
         <form id="loginForm">
+            <div id="loadingMessage" class="loading-message">
+                <span>Loading...</span>
+            </div>
             <div class="form-group">
                 <label for="role">Role</label>
                 <select id="role" name="role" required>
@@ -116,15 +126,18 @@
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="Enter your email">
+                <input type="email" id="email" name="email" required
+                    placeholder="Enter your email (kumarkunal@medi.go)">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <input type="password" id="password" name="password" required
+                    placeholder="Enter your password (kumarkunal@medigo)">
             </div>
 
             <button type="submit" class="submit-btn">Submit</button>
+            
         </form>
 
         <a href="index.html" class="back-link">Back to Home</a>
@@ -191,6 +204,11 @@
                     password: password
                 };
 
+                // Show loading message
+                const loadingMessage = document.getElementById('loadingMessage');
+                loadingMessage.style.display = 'block';
+                loadingMessage.innerHTML = '<span>Loading...</span>';
+
                 // Send POST request
                 const response = await fetch(`${BACKEND_URL}/api/v1/login`, {
                     method: 'POST',
@@ -200,18 +218,26 @@
                     body: JSON.stringify(loginData)
                 });
 
-                // Parse response
-                const responseData = await response.json();
+                // Hide loading message on error
+                if (!response.ok) {
+                    loadingMessage.style.display = 'none';
+                    throw new Error('Invalid credentials');
+                }
+
+                // Get response data
+                const data = await response.json();
+
+                // Hide loading message on success
+                loadingMessage.style.display = 'none';
 
                 // Check response status
                 if (response.ok) {
                     // Successful login
                     errorMessageEl.style.color = 'green';
-                    errorMessageEl.textContent = 'Login successful!';
-                    console.log(responseData);
+                    errorMessageEl.textContent = 'Login successful! Redirecting...';
 
                     // Store token
-                    const token = responseData.data.token;
+                    const token = data.data.token;
 
                     // Decode JWT token
                     try {

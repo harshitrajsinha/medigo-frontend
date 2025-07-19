@@ -41,6 +41,12 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
+        .loading-message {
+            display: none;
+            margin-top: 10px;
+            color: #1877ca;
+        }
+
         .dialog-content input {
             width: 100%;
             padding: 10px;
@@ -129,11 +135,14 @@
         <div class="dialog-content">
             <h2>Patient Report</h2>
             <p>Please enter your patient token ID:</p>
-            <input type="text" id="patientTokenInput" placeholder="Enter Token ID">
+            <input type="text" id="patientTokenInput" placeholder="Enter Token ID (234022)">
             <p id="tokenError" style="color: red; margin: 10px 0;"></p>
             <div class="dialog-buttons">
                 <button class="dialog-btn dialog-btn-submit" onclick="submitPatientToken()">Submit</button>
                 <button class="dialog-btn dialog-btn-cancel" onclick="closePatientReportDialog()">Cancel</button>
+            </div>
+            <div id="loadingMessage" class="loading-message">
+                <span>Loading...</span>
             </div>
         </div>
     </div>
@@ -153,10 +162,12 @@
         async function submitPatientToken() {
             const tokenInput = document.getElementById('patientTokenInput');
             const errorEl = document.getElementById('tokenError');
+            const loadingEl = document.getElementById('loadingMessage');
             const tokenId = tokenInput.value.trim();
 
-            // Clear previous error
+            // Clear previous error and loading state
             errorEl.textContent = '';
+            loadingEl.style.display = 'none';
 
             // Validate token input
             if (tokenId === '') {
@@ -165,8 +176,15 @@
             }
 
             try {
+                // Show loading message
+                loadingEl.style.display = 'block';
+                loadingEl.innerHTML = '<span>Loading...</span>';
+
                 // Attempt to fetch patient details
                 const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`);
+
+                // Update loading message after initial fetch
+                loadingEl.innerHTML = '<span>Warming up server...</span>';
 
                 if (!response.ok) {
                     // If response is not OK, throw an error
@@ -176,7 +194,8 @@
                 // If successful, redirect to patient report page
                 window.location.href = `patient-report.html?token=${tokenId}`;
             } catch (error) {
-                // Display error message
+                // Hide loading message and display error
+                loadingEl.style.display = 'none';
                 errorEl.textContent = error.message;
             }
         }
