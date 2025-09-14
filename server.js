@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; font-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://medigo-7u9l.onrender.com https://gemini-doctor.vercel.app;"
+    "default-src 'self'; font-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://medigo-eqck.onrender.com https://gemini-doctor.vercel.app;"
   );
   next();
 });
