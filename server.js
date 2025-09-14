@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; font-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://medigo-eqck.onrender.com https://gemini-doctor.vercel.app;"
+    `default-src 'self'; font-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ${process.env.BACKEND_URL} https://gemini-doctor.vercel.app;`
   );
   next();
 });
@@ -47,6 +48,13 @@ app.get("/doctor-diagnose", (req, res) => {
 
 app.get("/create-patient", (req, res) => {
   res.sendFile(path.join(__dirname, "create-patient.html"));
+});
+
+app.get("/env.js", (req, res) => {
+  res.setHeader("Content-Type", "application/javascript");
+  res.send(`window.ENV = {
+    BACKEND_URL: "${process.env.BACKEND_URL}",
+  };`);
 });
 
 // Start the server

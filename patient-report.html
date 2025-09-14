@@ -163,15 +163,16 @@
 
     <a href="index.html" class="back-btn">Back to Home</a>
 
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         // Retrieve token from URL
         const urlParams = new URLSearchParams(window.location.search);
         const tokenId = urlParams.get('token');
 
         async function fetchPatientReport() {
             try {
-                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`);
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${tokenId}`);
 
                 if (!response.ok) {
                     throw new Error('Patient not found');

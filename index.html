@@ -146,9 +146,9 @@
             </div>
         </div>
     </div>
-
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         function openPatientReportDialog() {
             document.getElementById('patientReportDialog').style.display = 'block';
             document.getElementById('patientTokenInput').value = '';
@@ -181,7 +181,7 @@
                 loadingEl.innerHTML = '<span>Loading...</span>';
 
                 // Attempt to fetch patient details
-                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`);
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${tokenId}`);
 
                 // Update loading message after initial fetch
                 loadingEl.innerHTML = '<span>Warming up server...</span>';

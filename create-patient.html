@@ -173,8 +173,9 @@
         <a href="receptionist-dashboard.html" class="btn-back">Back to Dashboard</a>
     </div>
 
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         document.getElementById('createPatientForm').addEventListener('submit', async (event) => {
             event.preventDefault();
 
@@ -228,7 +229,7 @@
                 console.log('Patient Data:', patientData);
 
                 // Send POST request to create patient
-                const response = await fetch(`${BACKEND_URL}/api/v1/patient`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${userAuth.token}`,

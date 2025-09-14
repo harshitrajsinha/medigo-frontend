@@ -188,8 +188,9 @@
         </div>
     </div>
 
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         // Function to remove loading dialog
         function removeLoadingDialog() {
             const loadingDialog = document.getElementById('loadingDialog');
@@ -270,7 +271,7 @@
                                 }
 
                                 // Send DELETE request
-                                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${patient.token_id}`, {
+                                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${patient.token_id}`, {
                                     method: 'DELETE',
                                     headers: {
                                         'Authorization': `Bearer ${userAuth.token}`,

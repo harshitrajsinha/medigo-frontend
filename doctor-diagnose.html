@@ -246,8 +246,9 @@
         </div>
     </div>
     <a href="doctor-dashboard.html" class="back-link">Back to Dashboard</a>
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         // Function to remove loading dialog
         function removeLoadingDialog() {
             const loadingDialog = document.getElementById('loading-dialog');
@@ -273,7 +274,7 @@
                 document.getElementById('userRole').textContent = `Role: ${userAuth.role}`;
 
                 // Fetch patient details
-                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${tokenId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${userAuth.token}`,
@@ -389,7 +390,7 @@ ${diagnosisData.Treatment.map((t, index) => `${index + 1}. ${t}`).join('\n')}`;
                         submitBtn.textContent = 'Submitting...';
 
                         // Send PATCH request
-                        const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`, {
+                        const response = await fetch(`${BACKEND_URL}/api/v1/patients/${tokenId}`, {
                             method: 'PATCH',
                             headers: {
                                 'Authorization': `Bearer ${userAuth.token}`,

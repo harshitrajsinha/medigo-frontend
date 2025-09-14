@@ -217,8 +217,9 @@
         <a href="receptionist-dashboard.html" class="btn-back">Back to Dashboard</a>
     </div>
 
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         // Function to remove loading overlay
         function removeLoadingOverlay() {
             document.getElementById('loadingOverlay').style.display = 'none';
@@ -254,7 +255,7 @@
                 }
 
                 // Fetch patient details
-                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${tokenId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${userAuth.token}`,
@@ -351,7 +352,7 @@
                 };
 
                 // Send PUT request to update patient
-                const response = await fetch(`${BACKEND_URL}/api/v1/patient/${tokenId}`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${tokenId}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${userAuth.token}`,

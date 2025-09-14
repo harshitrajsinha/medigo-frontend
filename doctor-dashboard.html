@@ -152,8 +152,9 @@
         </div>
     </div>
 
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         // Function to remove loading dialog
         function removeLoadingDialog() {
             const loadingDialog = document.getElementById('loading-dialog');

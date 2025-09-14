@@ -143,8 +143,9 @@
         <a href="index.html" class="back-link">Back to Home</a>
     </div>
 
+    <script src="/env.js"></script>
     <script>
-        const BACKEND_URL = "https://medigo-eqck.onrender.com";
+        const BACKEND_URL = window.ENV.BACKEND_URL;
         document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
