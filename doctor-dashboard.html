@@ -182,7 +182,7 @@
                 document.getElementById('userRole').textContent = `Role: ${userAuth.role}`;
 
                 // Fetch patients for the doctor
-                const response = await fetch(`${BACKEND_URL}/api/v1/patients/${decodedPayload.userid}`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/doctors/${decodedPayload.userid}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${userAuth.token}`,
