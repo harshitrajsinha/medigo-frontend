@@ -206,7 +206,11 @@
 
             <div class="form-group">
                 <label for="assigned_doctor">Assigned Doctor</label>
-                <input type="text" id="assigned_doctor" name="assigned_doctor" required>
+                <select id="assigned_doctor" name="assigned_doctor" required>
+                    <option value="28844ae6-d482-441b-abd6-09db2a64c707">Harshit Raj</option>
+                    <option value="84576c8c-9e88-494d-bdd9-e855247e11df">Raj Sinha</option>
+                    <option value="e58056e6-28e1-43de-afda-8c6e9363ddda">Lucy Mountain</option>
+                </select>
             </div>
 
             <input type="hidden" id="tokenId" name="tokenId">
@@ -233,7 +237,7 @@
             document.getElementById('age').value = patient.age;
             document.getElementById('contact').value = patient.contact;
             document.getElementById('symptoms').value = patient.symptoms;
-            document.getElementById('assigned_doctor').value = patient.assigned_to;
+            document.getElementById('assigned_doctor').value = patient.assigned_to_id;
             document.getElementById('tokenId').value = patient.token_id;
         }
 
