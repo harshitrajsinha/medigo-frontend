@@ -149,6 +149,11 @@
     <script src="/env.js"></script>
     <script>
         const BACKEND_URL = window.ENV.BACKEND_URL;
+
+        function warmUpBackendSrv() {
+            fetch(`${BACKEND_URL}`).catch(() => { });
+        }
+
         function openPatientReportDialog() {
             document.getElementById('patientReportDialog').style.display = 'block';
             document.getElementById('patientTokenInput').value = '';
@@ -207,6 +212,8 @@
                 dialog.style.display = 'none';
             }
         }
+
+        warmUpBackendSrv()
     </script>
 </body>
 
